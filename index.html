@@ -298,6 +298,9 @@
     <div class="eyebrow" id="logSlotLabel">Log meal</div>
     <div class="modal-title">Log what you ate</div>
     <div class="head-line"></div>
+    <label for="logRecipePick">Pick one of your recipes</label>
+    <select id="logRecipePick"><option value="">— choose a recipe —</option></select>
+    <div class="mini-hint" style="margin:10px 0 4px">…or enter something custom below.</div>
     <label for="logName">Meal name</label>
     <input id="logName" placeholder="e.g. Yogurt bowl" />
     <div class="modal-sub">Ingredients</div>
@@ -675,6 +678,8 @@
   function openLogModal(slot, prefillId){
     logSlot = slot;
     $("logSlotLabel").textContent = slot === "__default__" ? "New daily item" : slot === "extra" ? "Log an extra" : "Log "+slot;
+    $("logRecipePick").innerHTML = '<option value="">— choose a recipe —</option>' + RECIPES.map(r => '<option value="'+r.id+'">'+r.name+'</option>').join("");
+    $("logRecipePick").value = "";
     $("logIngs").innerHTML = "";
     if (prefillId){
       const r = RECIPES.find(x=>x.id===prefillId);
@@ -689,6 +694,17 @@
     $("logModal").classList.remove("hidden");
   }
   $("addLogIng").onclick = () => buildLogRow();
+  $("logRecipePick").onchange = () => {
+    const id = $("logRecipePick").value;
+    if (!id) return;
+    const r = RECIPES.find(x => x.id === id);
+    $("logName").value = r ? r.name : "";
+    $("logIngs").innerHTML = "";
+    const rows = INGS[id] || [];
+    rows.forEach(i => buildLogRow({ingredient:i.ingredient, amount:i.per_serving, protein:i.protein, carbs:i.carbs, fat:i.fat, calories:i.calories}));
+    if (!rows.length) buildLogRow();
+    updateLogTotals();
+  };
   $("logSave").onclick = async () => {
     const t = logRows().reduce((a,w)=>({
       p:a.p+(+w.querySelector(".lf-p").value||0), c:a.c+(+w.querySelector(".lf-c").value||0),
