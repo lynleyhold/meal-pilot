@@ -96,6 +96,20 @@
   .summary-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-top:14px;}
   .sum-line{font-size:13px;line-height:1.55;margin:7px 0;display:flex;gap:9px;color:var(--text);}
   .sum-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex:none;}
+  .meal-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:14px;}
+  .meal-box.eaten{opacity:.66;}
+  .meal-sec-label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--rose);margin-bottom:10px;}
+  .meal-top{display:flex;align-items:center;gap:12px;}
+  .meal-check{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);flex:none;
+    display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--muted);}
+  .meal-check.on{background:#7FA06A;border-color:#7FA06A;color:#1A1518;}
+  .meal-name{font-size:16px;}
+  .meal-macros{font-size:11px;color:var(--muted);margin-top:3px;}
+  .meal-act{display:flex;align-items:center;gap:10px;margin-top:12px;}
+  .ate-btn{flex:1;background:var(--rose);color:#1A1518;border:none;border-radius:10px;padding:11px;
+    font-size:14px;font-weight:500;cursor:pointer;font-family:var(--sans);}
+  .ate-btn:active{transform:scale(.99);}
+  .eaten-tag{flex:1;color:#9DBE86;font-size:13px;}
 
   .modal-overlay{position:fixed;inset:0;background:rgba(10,8,9,.72);display:flex;
     align-items:flex-end;justify-content:center;z-index:50;}
@@ -417,7 +431,7 @@
       "1. Whisk the eggs with the cottage cheese.\n2. Stir in diced onion, bell pepper, spinach and cheese.\n3. Pour into a dish and bake at 375°F for ~25-30 min until set."]
   ];
 
-  function showApp(){ authScreen.classList.add("hidden"); appScreen.classList.remove("hidden"); appNav.classList.remove("hidden"); loadRecipes(); loadProfile(); loadPlan(); ensureDailyDefaults(); showScreen("Recipes"); }
+  function showApp(){ authScreen.classList.add("hidden"); appScreen.classList.remove("hidden"); appNav.classList.remove("hidden"); loadRecipes(); loadProfile(); loadPlan(); loadDefaults(); showScreen("Recipes"); }
   function showAuth(){ appScreen.classList.add("hidden"); appNav.classList.add("hidden"); authScreen.classList.remove("hidden"); }
 
   // ----- Daily default items (e.g. a latte every morning) -----
@@ -431,17 +445,19 @@
       +'<button class="meal-btn ghost" onclick="removeDefault(\''+d.id+'\')">Remove</button></div>').join("");
   }
   window.removeDefault = async (id) => { await db.from("daily_defaults").delete().eq("id", id); await loadDefaults(); renderDefaultList(); };
-  async function ensureDailyDefaults(){
-    await loadDefaults();
-    const key = "mp_defaults_" + todayKey();
-    if (!localStorage.getItem(key)){
-      for (const d of DEFAULTS){
-        await db.from("daily_log").insert({ log_date: todayKey(), slot:"extra", label:d.label, protein:d.protein, carbs:d.carbs, fat:d.fat, calories:d.calories });
-      }
-      localStorage.setItem(key, "1");
-      if (!$("screenToday").classList.contains("hidden")) renderToday();
-    }
-  }
+  // Daily items are PENDING each day until you confirm — they don't count toward macros until "Had it".
+  window.logDefault = async (id) => {
+    const d = DEFAULTS.find(x => x.id === id); if (!d) return;
+    localStorage.removeItem("mp_skip_"+todayKey()+"_"+id);
+    await db.from("daily_log").insert({ log_date: todayKey(), slot:"extra", label:d.label, protein:d.protein, carbs:d.carbs, fat:d.fat, calories:d.calories });
+    renderToday();
+  };
+  window.skipDefault = (id) => { localStorage.setItem("mp_skip_"+todayKey()+"_"+id, "1"); renderToday(); };
+  window.undoDefault = async (id) => {
+    const d = DEFAULTS.find(x => x.id === id); if (!d) return;
+    await db.from("daily_log").delete().eq("log_date", todayKey()).eq("slot","extra").eq("label", d.label);
+    renderToday();
+  };
 
   // ----- Screen navigation -----
   window.showScreen = function(name){
@@ -508,8 +524,49 @@
       + lines.map(l => '<div class="sum-line"><span class="sum-dot" style="background:'+l[0]+'"></span><span>'+l[1]+'</span></div>').join("")
       + '<div style="font-size:11px;color:#8E8188;margin-top:9px">Based on your macros. Vitamin &amp; micronutrient insights come with the AI nutritionist.</div></div>';
   }
+  function mealSection(slot, label, plannedId, breakfasts){
+    const log = LOG.find(r => r.slot === slot);
+    let body;
+    if (log){
+      body = '<div class="meal-top"><div class="meal-check on">✓</div>'
+        + '<div style="flex:1"><div class="meal-name">'+log.label+'</div><div class="meal-macros">'+fmtMacros({p:+log.protein,c:+log.carbs,f:+log.fat,cal:+log.calories})+'</div></div></div>'
+        + '<div class="meal-act"><span class="eaten-tag">✓ Eaten</span><button class="meal-btn ghost" onclick="undoLog(\''+slot+'\')">Undo</button></div>';
+    } else if (slot === "breakfast"){
+      const bId = localStorage.getItem("mp_bfast_"+todayKey()) || (breakfasts[0] && breakfasts[0].id) || "";
+      const opts = breakfasts.map(r=>'<option value="'+r.id+'"'+(r.id===bId?' selected':'')+'>'+r.name+'</option>').join("");
+      const macros = bId ? '<div class="meal-macros" style="margin-top:8px">'+fmtMacros(recipeTotals(bId))+'</div>' : '';
+      body = '<select id="bfastSel">'+(opts||'<option value="">No breakfasts yet</option>')+'</select>'+macros
+        + '<div class="meal-act"><button class="ate-btn" onclick="logBreakfast()">Ate it</button><button class="meal-btn ghost" onclick="logSomethingElse(\'breakfast\',null)">Something else</button></div>';
+    } else if (plannedId){
+      body = '<div class="meal-top" onclick="openRecipe(\''+plannedId+'\')" style="cursor:pointer"><div class="meal-check"></div>'
+        + '<div style="flex:1"><div class="meal-name">'+((RECIPES.find(x=>x.id===plannedId)||{}).name||"Meal")+'</div><div class="meal-macros">'+fmtMacros(recipeTotals(plannedId))+'</div></div><span class="chev">›</span></div>'
+        + '<div class="meal-act"><button class="ate-btn" onclick="logPlanned(\''+slot+'\',\''+plannedId+'\')">Ate it</button><button class="meal-btn ghost" onclick="logSomethingElse(\''+slot+'\',\''+plannedId+'\')">Something else</button></div>';
+    } else {
+      body = '<div class="meal-top"><div class="meal-check"></div><div style="flex:1"><div class="meal-name" style="color:var(--muted)">Nothing planned</div></div></div>'
+        + '<div class="meal-act"><button class="ate-btn" onclick="logSomethingElse(\''+slot+'\',null)">Log a meal</button></div>';
+    }
+    const sub = slot === "lunch" ? "Lunch · usually yesterday’s dinner" : label;
+    return '<div class="meal-box'+(log?' eaten':'')+'"><div class="meal-sec-label">'+sub+'</div>'+body+'</div>';
+  }
+  function dailyItemCard(d){
+    const eaten = LOG.some(r => r.slot==="extra" && r.label === d.label);
+    const skipped = localStorage.getItem("mp_skip_"+todayKey()+"_"+d.id);
+    const m = fmtMacros({p:+d.protein,c:+d.carbs,f:+d.fat,cal:+d.calories});
+    let body;
+    if (eaten){
+      body = '<div class="meal-top"><div class="meal-check on">✓</div><div style="flex:1"><div class="meal-name">'+d.label+'</div><div class="meal-macros">'+m+'</div></div></div>'
+        + '<div class="meal-act"><span class="eaten-tag">✓ Had it</span><button class="meal-btn ghost" onclick="undoDefault(\''+d.id+'\')">Undo</button></div>';
+    } else if (skipped){
+      body = '<div class="meal-top"><div class="meal-check"></div><div style="flex:1"><div class="meal-name" style="color:var(--muted)">'+d.label+' — not today</div></div></div>'
+        + '<div class="meal-act"><button class="meal-btn" onclick="logDefault(\''+d.id+'\')">Had it after all</button></div>';
+    } else {
+      body = '<div class="meal-top"><div class="meal-check"></div><div style="flex:1"><div class="meal-name">'+d.label+'</div><div class="meal-macros">'+m+'</div></div></div>'
+        + '<div class="meal-act"><button class="ate-btn" onclick="logDefault(\''+d.id+'\')">Had it</button><button class="meal-btn ghost" onclick="skipDefault(\''+d.id+'\')">Not today</button></div>';
+    }
+    return '<div class="meal-box'+(eaten?' eaten':'')+'">'+body+'</div>';
+  }
   async function renderToday(){
-    await loadLog();
+    await loadLog(); await loadDefaults();
     const now = new Date();
     const tIdx = (now.getDay()+6)%7, yIdx = (tIdx+6)%7;
     const hr = now.getHours();
@@ -542,17 +599,16 @@
       + summaryCardHTML(day, tp, tcal, tc, tf)
       + '<div class="group-label">Today’s meals</div>';
 
-    const bLog = LOG.find(r=>r.slot==="breakfast");
-    if (bLog){ html += loggedCard("Breakfast", bLog); }
-    else {
-      const opts = breakfasts.map(r=>'<option value="'+r.id+'"'+(r.id===bId?' selected':'')+'>'+r.name+'</option>').join("");
-      html += '<div class="plan-day" style="margin-bottom:8px"><span class="d">B</span><select id="bfastSel">'+(opts||'<option value="">No breakfasts yet</option>')+'</select></div>'
-        + '<div class="meal-actions"><button class="meal-btn" onclick="logBreakfast()">Ate it</button><button class="meal-btn ghost" onclick="logSomethingElse(\'breakfast\',null)">Something else</button></div>';
-    }
-    html += slotBlock("lunch", "Lunch · yesterday’s dinner", lunchId);
-    html += slotBlock("dinner", "Dinner", dinnerId);
+    html += mealSection("breakfast", "Breakfast", null, breakfasts);
+    html += mealSection("lunch", "Lunch", lunchId, breakfasts);
+    html += mealSection("dinner", "Dinner", dinnerId, breakfasts);
 
-    const extras = LOG.filter(r=>r.slot==="extra");
+    if (DEFAULTS.length){
+      html += '<div class="group-label">Daily items</div>';
+      DEFAULTS.forEach(d => html += dailyItemCard(d));
+    }
+    const defLabels = new Set(DEFAULTS.map(d=>d.label));
+    const extras = LOG.filter(r => r.slot==="extra" && !defLabels.has(r.label));
     if (extras.length){ html += '<div class="group-label">Extras</div>'; extras.forEach(e => html += loggedCard(null, e, true)); }
     html += '<button class="add-ing-btn" style="margin-top:6px" onclick="addExtra()">+ Log a snack or extra</button>';
 
@@ -644,7 +700,6 @@
     const macros = { label, protein:round1(t.p), carbs:round1(t.c), fat:round1(t.f), calories:Math.round(t.cal) };
     if (logSlot === "__default__"){
       await db.from("daily_defaults").insert(macros);
-      await db.from("daily_log").insert({ log_date: todayKey(), slot:"extra", ...macros });
       $("logModal").classList.add("hidden");
       await loadDefaults(); renderDefaultList();
       if (!$("screenToday").classList.contains("hidden")) renderToday();
