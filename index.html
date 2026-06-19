@@ -599,7 +599,6 @@
       +   macroBar('Carbs',day.c,tc,'#B57E92')
       +   macroBar('Fat',day.f,tf,'#9E8C84')
       + '</div></div>'
-      + summaryCardHTML(day, tp, tcal, tc, tf)
       + '<div class="group-label">Today’s meals</div>';
 
     html += mealSection("breakfast", "Breakfast", null, breakfasts);
@@ -614,6 +613,7 @@
     const extras = LOG.filter(r => r.slot==="extra" && !defLabels.has(r.label));
     if (extras.length){ html += '<div class="group-label">Extras</div>'; extras.forEach(e => html += loggedCard(null, e, true)); }
     html += '<button class="add-ing-btn" style="margin-top:6px" onclick="addExtra()">+ Log a snack or extra</button>';
+    html += '<div style="margin-top:24px">' + summaryCardHTML(day, tp, tcal, tc, tf) + '</div>';
 
     $("todayBody").innerHTML = html;
     const bsel = $("bfastSel");
