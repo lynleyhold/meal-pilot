@@ -551,11 +551,13 @@
       const opts = breakfasts.map(r=>'<option value="'+r.id+'"'+(r.id===bId?' selected':'')+'>'+r.name+'</option>').join("");
       const macros = bId ? '<div class="meal-macros" style="margin-top:8px">'+fmtMacros(recipeTotals(bId))+'</div>' : '';
       body = '<select id="bfastSel">'+(opts||'<option value="">No breakfasts yet</option>')+'</select>'+macros
-        + '<div class="meal-act"><button class="ate-btn" onclick="logBreakfast()">Ate it</button><button class="meal-btn ghost" onclick="logSomethingElse(\'breakfast\',null)">Something else</button></div>';
+        + '<div class="meal-act"><button class="ate-btn" onclick="logBreakfast()">Ate it</button></div>'
+        + '<div class="meal-act" style="margin-top:8px"><button class="meal-btn ghost" style="flex:1" onclick="adjustBreakfast()">Adjust</button><button class="meal-btn ghost" style="flex:1" onclick="logSomethingElse(\'breakfast\',null)">Something else</button></div>';
     } else if (plannedId){
       body = '<div class="meal-top" onclick="openRecipe(\''+plannedId+'\')" style="cursor:pointer"><div class="meal-check"></div>'
         + '<div style="flex:1"><div class="meal-name">'+((RECIPES.find(x=>x.id===plannedId)||{}).name||"Meal")+'</div><div class="meal-macros">'+fmtMacros(recipeTotals(plannedId))+'</div></div><span class="chev">›</span></div>'
-        + '<div class="meal-act"><button class="ate-btn" onclick="logPlanned(\''+slot+'\',\''+plannedId+'\')">Ate it</button><button class="meal-btn ghost" onclick="logSomethingElse(\''+slot+'\',\''+plannedId+'\')">Something else</button></div>';
+        + '<div class="meal-act"><button class="ate-btn" onclick="logPlanned(\''+slot+'\',\''+plannedId+'\')">Ate it</button></div>'
+        + '<div class="meal-act" style="margin-top:8px"><button class="meal-btn ghost" style="flex:1" onclick="logSomethingElse(\''+slot+'\',\''+plannedId+'\')">Adjust</button><button class="meal-btn ghost" style="flex:1" onclick="logSomethingElse(\''+slot+'\',null)">Something else</button></div>';
     } else {
       body = '<div class="meal-top"><div class="meal-check"></div><div style="flex:1"><div class="meal-name" style="color:var(--muted)">Nothing planned</div></div></div>'
         + '<div class="meal-act"><button class="ate-btn" onclick="logSomethingElse(\''+slot+'\',null)">Log a meal</button></div>';
@@ -651,6 +653,7 @@
     renderToday();
   };
   window.logSomethingElse = (slot, id) => openLogModal(slot, id);
+  window.adjustBreakfast = () => { const sel = $("bfastSel"); openLogModal("breakfast", sel && sel.value ? sel.value : null); };
   window.addExtra = () => openLogModal("extra", null);
 
   const logRows = () => [...$("logIngs").querySelectorAll(".edit-ing")];
