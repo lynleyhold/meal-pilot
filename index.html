@@ -110,6 +110,10 @@
     font-size:14px;font-weight:500;cursor:pointer;font-family:var(--sans);}
   .ate-btn:active{transform:scale(.99);}
   .eaten-tag{flex:1;color:#9DBE86;font-size:13px;}
+  .ob-title{font-family:var(--serif);font-size:24px;}
+  .ob-p{color:var(--text2);font-size:14px;line-height:1.6;margin:14px 0 6px;}
+  .ob-step{font-size:13px;color:var(--text2);line-height:1.5;margin:9px 0;}
+  .ob-num{color:var(--rose-bright);}
 
   .modal-overlay{position:fixed;inset:0;background:rgba(10,8,9,.72);display:flex;
     align-items:flex-end;justify-content:center;z-index:50;}
@@ -261,6 +265,14 @@
       <button class="link" id="cancelBtn">Cancel</button>
       <button class="delete-btn" id="deleteBtn">Delete this recipe</button>
     </div>
+  </div>
+</div>
+
+<!-- ============ NEW-USER ONBOARDING WIZARD ============ -->
+<div id="onboard" class="hidden" style="position:fixed;inset:0;background:var(--bg);z-index:60;display:flex;align-items:center;justify-content:center;padding:24px;overflow-y:auto;">
+  <div class="auth-card" style="max-width:380px;">
+    <div class="eyebrow" id="obStep">Step 1 of 5</div>
+    <div id="obBody"></div>
   </div>
 </div>
 
@@ -791,7 +803,7 @@
     if (!data){
       const { data: ins } = await db.from("profiles").insert({}).select().single();
       PROFILE = ins || { cooking_fat:"Olive oil", cooking_fat_amount:"0.5 tbsp" };
-      openPref(true);
+      startOnboarding();
     } else { PROFILE = data; }
   }
   function openPref(onboarding){
@@ -807,6 +819,85 @@
     $("prefModal").classList.remove("hidden");
   }
   $("addDefaultBtn").onclick = () => openLogModal("__default__", null);
+
+  // ----- New-user onboarding wizard -----
+  let OB = { step:0, name:"", goal:"maintain", weight:150, tp:135, tcal:1800, tc:180, tf:60, fat:"Olive oil", fatAmt:"0.5 tbsp" };
+  function computeTargets(){
+    const w = +OB.weight || 150;
+    const mult = OB.goal === "lose" ? 12 : OB.goal === "muscle" ? 16 : 14;
+    OB.tcal = Math.round(w*mult/10)*10;
+    OB.tp = Math.round(w*1.0);
+    OB.tf = Math.round(OB.tcal*0.27/9);
+    OB.tc = Math.max(0, Math.round((OB.tcal - OB.tp*4 - OB.tf*9)/4));
+  }
+  function startOnboarding(){
+    OB.step = 0; OB.name = (PROFILE && PROFILE.display_name) || "";
+    renderOB(); $("onboard").classList.remove("hidden");
+  }
+  function renderOB(){
+    $("obStep").textContent = "Step " + (OB.step+1) + " of 5";
+    let h = "";
+    if (OB.step === 0){
+      h = '<div class="brand">MealPilot</div><div class="brand-line"></div>'
+        + '<p class="ob-p">Welcome! Let’s set up your app — about two minutes. First, what should we call you?</p>'
+        + '<label>Your name</label><input id="obName" value="'+esc(OB.name)+'" placeholder="e.g. Lynley">'
+        + '<button class="btn" onclick="obNext()">Next</button>';
+    } else if (OB.step === 1){
+      h = '<div class="ob-title">Your goal</div><div class="brand-line"></div>'
+        + '<p class="ob-p">Pick your goal and weight and we’ll suggest daily targets — you can fine-tune them next.</p>'
+        + '<label>Goal</label><select id="obGoal">'
+        + '<option value="lose"'+(OB.goal==="lose"?" selected":"")+'>Lose fat</option>'
+        + '<option value="muscle"'+(OB.goal==="muscle"?" selected":"")+'>Build muscle</option>'
+        + '<option value="maintain"'+(OB.goal==="maintain"?" selected":"")+'>Maintain</option></select>'
+        + '<label>Bodyweight (lb)</label><input id="obWeight" type="number" value="'+OB.weight+'">'
+        + '<button class="btn" onclick="obCalc()">See my targets</button>'
+        + '<button class="link" onclick="obBack()">Back</button>';
+    } else if (OB.step === 2){
+      h = '<div class="ob-title">Your daily targets</div><div class="brand-line"></div>'
+        + '<p class="ob-p">Suggested for your goal — adjust any of them. (General guidelines, not medical advice.)</p>'
+        + '<div class="row4">'
+        + '<div class="mfield"><label>Protein g</label><input id="obP" type="number" value="'+OB.tp+'"></div>'
+        + '<div class="mfield"><label>Carbs g</label><input id="obC" type="number" value="'+OB.tc+'"></div>'
+        + '<div class="mfield"><label>Fat g</label><input id="obF" type="number" value="'+OB.tf+'"></div>'
+        + '<div class="mfield"><label>Calories</label><input id="obCal" type="number" value="'+OB.tcal+'"></div></div>'
+        + '<button class="btn" onclick="obNext()">Next</button>'
+        + '<button class="link" onclick="obBack()">Back</button>';
+    } else if (OB.step === 3){
+      h = '<div class="ob-title">Cooking fat</div><div class="brand-line"></div>'
+        + '<p class="ob-p">What do you usually cook with on the stove? You’ll be able to add it to any recipe in one tap so its calories are never missed.</p>'
+        + '<label>Cooking fat</label><select id="obFat">'
+        + ["Olive oil","Butter","Avocado oil","Coconut oil","None"].map(o=>'<option'+(OB.fat===o?" selected":"")+'>'+o+'</option>').join("")
+        + '</select><label>Typical amount per serving</label><input id="obFatAmt" value="'+esc(OB.fatAmt)+'" placeholder="e.g. 0.5 tbsp">'
+        + '<button class="btn" onclick="obNext()">Next</button>'
+        + '<button class="link" onclick="obBack()">Back</button>';
+    } else {
+      h = '<div class="ob-title">You’re all set'+(OB.name?", "+OB.name:"")+'!</div><div class="brand-line"></div>'
+        + '<p class="ob-p">Here’s how MealPilot works:</p>'
+        + '<div class="ob-step"><span class="ob-num">1 · Recipes</span> — add the meals you actually eat. Macros auto-fill as you type.</div>'
+        + '<div class="ob-step"><span class="ob-num">2 · Plan</span> — pick your dinners for the week and get one combined shopping list.</div>'
+        + '<div class="ob-step"><span class="ob-num">3 · Today</span> — see each meal, check it off as you eat, and watch your macros.</div>'
+        + '<p class="ob-p">You can add daily items (like a coffee) and tweak anything in Settings later.</p>'
+        + '<button class="btn" onclick="obFinish()">Start adding my meals</button>'
+        + '<button class="link" onclick="obBack()">Back</button>';
+    }
+    $("obBody").innerHTML = h;
+  }
+  window.obNext = () => {
+    if (OB.step === 0) OB.name = $("obName").value.trim();
+    if (OB.step === 2){ OB.tp=+$("obP").value||OB.tp; OB.tc=+$("obC").value||OB.tc; OB.tf=+$("obF").value||OB.tf; OB.tcal=+$("obCal").value||OB.tcal; }
+    if (OB.step === 3){ OB.fat=$("obFat").value; OB.fatAmt=$("obFatAmt").value.trim()||"0.5 tbsp"; }
+    OB.step++; renderOB();
+  };
+  window.obBack = () => { if (OB.step>0){ OB.step--; renderOB(); } };
+  window.obCalc = () => { OB.goal=$("obGoal").value; OB.weight=+$("obWeight").value||150; computeTargets(); OB.step=2; renderOB(); };
+  window.obFinish = async () => {
+    const upd = { display_name:OB.name, cooking_fat:OB.fat, cooking_fat_amount:OB.fatAmt,
+      target_protein:OB.tp, target_calories:OB.tcal, target_carbs:OB.tc, target_fat:OB.tf };
+    if (PROFILE && PROFILE.user_id) await db.from("profiles").update(upd).eq("user_id", PROFILE.user_id);
+    if (PROFILE) Object.assign(PROFILE, upd);
+    $("onboard").classList.add("hidden");
+    showScreen("Recipes");
+  };
   $("prefSave").onclick = async () => {
     const upd = {
       display_name: $("pName").value.trim(),
