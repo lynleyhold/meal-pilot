@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="MealPilot" />
+<meta name="theme-color" content="#1A1518" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="icon-180.png" />
+<title>MealPilot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&display=swap" />
+<style>
+  :root{
+    --bg:#1A1518; --card:#241D21; --border:#352B30;
+    --text:#F2E9ED; --text2:#B7A9AF; --muted:#8E8188;
+    --rose:#C98BA0; --rose-bright:#D79DB0; --gold:#C2A36B;
+    --serif:'Fraunces',Georgia,serif;
+    --sans:-apple-system,system-ui,'Segoe UI',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);
+    min-height:100vh;-webkit-font-smoothing:antialiased;}
+  .hidden{display:none !important;}
+
+  .auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .auth-card{width:100%;max-width:360px;background:var(--card);border:1px solid var(--border);
+    border-radius:20px;padding:32px 26px;}
+  .brand{font-family:var(--serif);font-size:30px;text-align:center;}
+  .brand-line{width:34px;height:1.5px;background:var(--gold);margin:12px auto 6px;}
+  .tagline{text-align:center;color:var(--muted);font-size:13px;margin-bottom:24px;}
+  label{display:block;font-size:12px;letter-spacing:.04em;color:var(--text2);margin:14px 0 6px;}
+  input,select,textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:12px;
+    padding:12px 14px;color:var(--text);font-size:15px;font-family:var(--sans);}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--rose);}
+  .btn{width:100%;margin-top:20px;background:var(--rose);color:#1A1518;border:none;border-radius:12px;
+    padding:13px;font-size:15px;font-weight:500;font-family:var(--sans);cursor:pointer;}
+  .btn:active{transform:scale(.99);}
+  .link{display:block;text-align:center;margin-top:16px;color:var(--rose-bright);
+    font-size:13px;background:none;border:none;cursor:pointer;width:100%;}
+  .msg{text-align:center;font-size:13px;margin-top:14px;min-height:18px;color:var(--gold);}
+
+  .app{max-width:480px;margin:0 auto;padding:24px 18px 90px;}
+  .app-head{display:flex;justify-content:space-between;align-items:flex-start;}
+  .eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--rose);}
+  .h1{font-family:var(--serif);font-size:26px;margin-top:3px;}
+  .head-line{width:30px;height:1.5px;background:var(--gold);margin-top:9px;}
+  .signout{background:none;border:1px solid var(--border);color:var(--text2);
+    border-radius:10px;padding:7px 12px;font-size:12px;cursor:pointer;font-family:var(--sans);width:auto;}
+
+  .add-row{display:flex;gap:8px;margin:22px 0 10px;}
+  .add-row input{flex:1;}
+  .add-btn{background:var(--card);border:1px solid var(--rose);color:var(--rose-bright);
+    border-radius:12px;padding:0 16px;font-size:20px;cursor:pointer;width:auto;}
+  .seed-btn{width:100%;background:none;border:1px solid var(--gold);color:var(--gold);
+    border-radius:12px;padding:11px;font-size:13px;letter-spacing:.03em;cursor:pointer;
+    font-family:var(--sans);margin-bottom:20px;}
+  .seed-btn:disabled{opacity:.6;}
+
+  .group-label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:18px 0 10px;}
+  .recipe{background:var(--card);border:1px solid var(--border);border-radius:14px;
+    padding:13px 15px;margin-bottom:10px;display:flex;align-items:center;gap:12px;cursor:pointer;}
+  .recipe:hover{border-color:var(--rose);}
+  .recipe .dot{width:10px;height:10px;border-radius:50%;background:var(--rose);flex:none;}
+  .recipe .name{font-size:15px;}
+  .recipe .meta{font-size:11px;color:var(--muted);margin-top:2px;}
+  .recipe .chev{margin-left:auto;color:var(--muted);font-size:16px;}
+  .empty{text-align:center;color:var(--muted);font-size:14px;padding:50px 20px;
+    border:1px dashed var(--border);border-radius:16px;margin-top:8px;}
+
+  .nav{position:fixed;left:0;right:0;bottom:0;background:#201A1E;border-top:1px solid var(--border);
+    display:flex;max-width:480px;margin:0 auto;}
+  .nav a{flex:1;text-align:center;padding:11px 0;color:var(--muted);font-size:10px;text-decoration:none;}
+  .nav a.active{color:var(--rose);}
+  .nav a{cursor:pointer;}
+  .nav .ic{font-size:20px;display:block;margin-bottom:2px;}
+
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+  .brand-sm{font-family:var(--serif);font-size:18px;}
+  .hint{color:var(--text2);font-size:13px;line-height:1.6;margin:14px 0 18px;}
+  .plan-day{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .plan-day .d{width:40px;font-size:12px;color:var(--muted);flex:none;}
+  .plan-day select{flex:1;}
+  .shop-item{display:flex;align-items:center;gap:11px;padding:11px 2px;border-bottom:1px solid #2C2429;
+    font-size:14px;color:var(--text);cursor:pointer;}
+  .shop-item input{width:auto;flex:none;accent-color:var(--rose);}
+  .shop-item.checked{color:var(--muted);text-decoration:line-through;}
+  .macro-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;
+    margin-top:16px;display:flex;align-items:center;gap:14px;}
+  .meal-actions{display:flex;gap:8px;margin:-2px 0 16px;}
+  .meal-btn{background:none;border:1px solid var(--rose);color:var(--rose-bright);border-radius:10px;
+    padding:6px 12px;font-size:12px;cursor:pointer;font-family:var(--sans);width:auto;}
+  .meal-btn.ghost{border-color:var(--border);color:var(--text2);}
+  .summary-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-top:14px;}
+  .sum-line{font-size:13px;line-height:1.55;margin:7px 0;display:flex;gap:9px;color:var(--text);}
+  .sum-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex:none;}
+
+  .modal-overlay{position:fixed;inset:0;background:rgba(10,8,9,.72);display:flex;
+    align-items:flex-end;justify-content:center;z-index:50;}
+  .modal{background:var(--card);border:1px solid var(--border);border-radius:22px 22px 0 0;
+    width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:26px 22px 40px;position:relative;}
+  .modal-close{position:absolute;top:16px;right:18px;background:none;border:none;
+    color:var(--muted);font-size:20px;cursor:pointer;width:auto;}
+  .modal-title{font-family:var(--serif);font-size:24px;margin-top:3px;padding-right:24px;}
+  .edit-btn{display:inline-block;margin-top:14px;background:none;border:1px solid var(--rose);
+    color:var(--rose-bright);border-radius:10px;padding:6px 14px;font-size:12px;cursor:pointer;
+    font-family:var(--sans);width:auto;}
+  .modal-macros{color:var(--rose-bright);font-size:13px;margin-top:14px;}
+  .modal-sub{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:24px 0 12px;}
+  .ing{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid #2C2429;}
+  .ing-name{font-size:14px;}
+  .ing-amt{font-size:13px;color:var(--text2);text-align:right;white-space:nowrap;}
+  .ing-ps{display:block;color:var(--muted);font-size:11px;}
+  .modal-method{font-size:14px;color:var(--text2);line-height:1.75;white-space:pre-line;}
+
+  /* edit mode */
+  .edit-ing{border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px;}
+  .edit-ing input{margin-bottom:7px;font-size:14px;padding:9px 11px;}
+  .row2,.row4{display:flex;gap:6px;}
+  .row2 input,.row4 input{margin-bottom:0;}
+  .row4 input{padding:9px 6px;text-align:center;}
+  .mfield{flex:1;}
+  .mfield label{display:block;font-size:9px;color:var(--muted);margin:0 0 3px 2px;letter-spacing:.03em;}
+  .mfield input{width:100%;}
+  .mini-hint{font-size:10px;color:var(--muted);margin:2px 0 5px;letter-spacing:.04em;}
+  .ing-actions{display:flex;justify-content:space-between;align-items:center;margin-top:9px;}
+  .auto-ing{background:none;border:none;color:var(--gold);font-size:12px;cursor:pointer;
+    width:auto;padding:0;font-family:var(--sans);}
+  .remove-ing{background:none;border:none;color:var(--rose-bright);font-size:12px;cursor:pointer;
+    width:auto;padding:0;}
+  .auto-msg{font-size:11px;color:var(--gold);margin-top:5px;min-height:14px;line-height:1.4;}
+  .add-ing-btn{width:100%;background:none;border:1px dashed var(--rose);color:var(--rose-bright);
+    border-radius:12px;padding:10px;font-size:13px;cursor:pointer;font-family:var(--sans);}
+  .edit-method{min-height:130px;line-height:1.6;resize:vertical;}
+  .delete-btn{width:100%;background:none;border:1px solid #6E3B3B;color:#D98A8A;border-radius:12px;
+    padding:11px;margin-top:18px;font-size:13px;cursor:pointer;font-family:var(--sans);}
+
+  @media(min-width:520px){
+    .modal-overlay{align-items:center;padding:24px;}
+    .modal{border-radius:22px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ AUTH SCREEN ============ -->
+<div id="authScreen" class="auth-wrap">
+  <div class="auth-card">
+    <div class="brand">MealPilot</div>
+    <div class="brand-line"></div>
+    <div class="tagline">Your plan, decided for you.</div>
+    <label for="email">Email</label>
+    <input id="email" type="email" placeholder="you@email.com" autocomplete="email" />
+    <label for="password">Password</label>
+    <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" />
+    <button class="btn" id="signInBtn">Sign in</button>
+    <button class="link" id="signUpBtn">New here? Create an account</button>
+    <div class="msg" id="authMsg"></div>
+  </div>
+</div>
+
+<!-- ============ APP SCREEN ============ -->
+<div id="appScreen" class="app hidden">
+  <div class="topbar">
+    <div class="brand-sm">MealPilot</div>
+    <div style="display:flex;gap:8px;">
+      <button class="signout" id="settingsBtn">Settings</button>
+      <button class="signout" id="signOutBtn">Sign out</button>
+    </div>
+  </div>
+
+  <!-- TODAY -->
+  <div id="screenToday" class="screen hidden">
+    <div class="eyebrow" id="todayDate">Today</div>
+    <div class="h1" id="todayGreet">Good morning</div>
+    <div class="head-line"></div>
+    <div id="todayBody"></div>
+  </div>
+
+  <!-- PLAN -->
+  <div id="screenPlan" class="screen hidden">
+    <div class="eyebrow">This week</div><div class="h1">Plan your week</div><div class="head-line"></div>
+    <p class="hint">Pick a dinner for each day. The next day's lunch is the leftovers. Leave a day empty if you're eating out or having your mom's cooking.</p>
+    <div id="planDays"></div>
+    <button class="btn" id="savePlanBtn">Save week &amp; build shopping list</button>
+    <button class="seed-btn" id="surpriseBtn" style="margin-top:12px;">Surprise me — fill from my dinners</button>
+  </div>
+
+  <!-- RECIPES -->
+  <div id="screenRecipes" class="screen">
+    <div class="eyebrow">Welcome</div><div class="h1">My recipes</div><div class="head-line"></div>
+    <div class="add-row">
+      <input id="newRecipe" type="text" placeholder="Add a recipe by name…" />
+      <button class="add-btn" id="addBtn" aria-label="Add recipe">+</button>
+    </div>
+    <div id="recipeList"></div>
+  </div>
+
+  <!-- SHOP -->
+  <div id="screenShop" class="screen hidden">
+    <div class="eyebrow">Sunday list</div><div class="h1">Shopping</div><div class="head-line"></div>
+    <p class="hint">Everything for your planned dinners, combined into one list (amounts cover 4 servings each: dinner + next-day lunch for two). Pantry staples and seasonings are left off.</p>
+    <div id="shopList"></div>
+  </div>
+</div>
+
+<div id="appNav" class="nav hidden">
+  <a id="navToday" onclick="showScreen('Today')"><span class="ic">☉</span>Today</a>
+  <a id="navPlan" onclick="showScreen('Plan')"><span class="ic">▦</span>Plan</a>
+  <a id="navRecipes" class="active" onclick="showScreen('Recipes')"><span class="ic">✿</span>Recipes</a>
+  <a id="navShop" onclick="showScreen('Shop')"><span class="ic">⌕</span>Shop</a>
+</div>
+
+<!-- ============ RECIPE DETAIL / EDIT MODAL ============ -->
+<div id="modal" class="modal-overlay hidden">
+  <div class="modal">
+    <button class="modal-close" id="modalClose" aria-label="Close">✕</button>
+
+    <!-- VIEW MODE -->
+    <div id="mView">
+      <div class="eyebrow" id="mType"></div>
+      <div class="modal-title" id="mName"></div>
+      <div class="head-line"></div>
+      <button class="edit-btn" id="editBtn">Edit recipe</button>
+      <div class="modal-macros" id="mMacros"></div>
+      <div class="modal-sub">Ingredients · makes 4 servings</div>
+      <div id="mIngs"></div>
+      <div class="modal-sub">How to make it</div>
+      <div class="modal-method" id="mMethod"></div>
+    </div>
+
+    <!-- EDIT MODE -->
+    <div id="mEdit" class="hidden">
+      <div class="eyebrow">Editing</div>
+      <input id="eName" placeholder="Recipe name" style="font-size:18px;margin:10px 0 8px;" />
+      <select id="eType"><option value="dinner">dinner</option><option value="breakfast">breakfast</option></select>
+      <div class="modal-sub">Ingredients</div>
+      <div class="mini-hint">Type the ingredient + amounts, then tap “Auto-fill macros” — or enter them by hand.</div>
+      <div id="eIngs"></div>
+      <button class="add-ing-btn" id="addFatBtn" style="margin-bottom:10px;">+ Add my cooking fat</button>
+      <button class="add-ing-btn" id="addIngBtn">+ Add ingredient</button>
+      <div class="modal-sub">Method</div>
+      <textarea id="eMethod" class="edit-method" placeholder="How to make it…"></textarea>
+      <button class="btn" id="saveBtn">Save changes</button>
+      <button class="link" id="cancelBtn">Cancel</button>
+      <button class="delete-btn" id="deleteBtn">Delete this recipe</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SETTINGS / ONBOARDING MODAL ============ -->
+<div id="prefModal" class="modal-overlay hidden">
+  <div class="modal" style="max-width:400px;">
+    <button class="modal-close" id="prefClose" aria-label="Close">✕</button>
+    <div class="eyebrow" id="prefEyebrow">Quick setup</div>
+    <div class="modal-title">Settings</div>
+    <div class="head-line"></div>
+    <label for="pName">Your name</label>
+    <input id="pName" placeholder="e.g. Lynley" />
+    <p style="color:var(--text2);font-size:13px;margin-top:18px;line-height:1.6;">What do you usually cook with on the stove? You'll be able to add it to any recipe in one tap, so its calories are never missed.</p>
+    <label for="pFat">Cooking fat</label>
+    <select id="pFat"><option>Olive oil</option><option>Butter</option><option>Avocado oil</option><option>Coconut oil</option><option>None</option></select>
+    <label for="pAmt">Typical amount per serving</label>
+    <input id="pAmt" placeholder="e.g. 0.5 tbsp" />
+    <div class="modal-sub" style="margin-top:22px;">Daily macro targets</div>
+    <label for="tProtein">Protein (g)</label><input id="tProtein" type="number" step="any" />
+    <label for="tCalories">Calories</label><input id="tCalories" type="number" step="any" />
+    <label for="tCarbs">Carbs (g)</label><input id="tCarbs" type="number" step="any" />
+    <label for="tFat">Fat (g)</label><input id="tFat" type="number" step="any" />
+    <div class="modal-sub" style="margin-top:22px;">Daily items (logged every day)</div>
+    <div class="mini-hint">Things you have every day, like a latte — added to each day automatically. Just delete it on Today on days you skip.</div>
+    <div id="defaultList"></div>
+    <button class="add-ing-btn" id="addDefaultBtn" style="margin-bottom:6px;">+ Add a daily item</button>
+    <button class="btn" id="prefSave">Save</button>
+  </div>
+</div>
+
+<!-- ============ LOG-A-MEAL MODAL ============ -->
+<div id="logModal" class="modal-overlay hidden">
+  <div class="modal" style="max-width:400px;">
+    <button class="modal-close" id="logClose" aria-label="Close">✕</button>
+    <div class="eyebrow" id="logSlotLabel">Log meal</div>
+    <div class="modal-title">Log what you ate</div>
+    <div class="head-line"></div>
+    <label for="logName">Meal name</label>
+    <input id="logName" placeholder="e.g. Yogurt bowl" />
+    <div class="modal-sub">Ingredients</div>
+    <div class="mini-hint">Type each food and amount — grams, oz, cups, tbsp, or a count like “5 strawberries” — then tap Auto-fill. Add as many as you like.</div>
+    <div id="logIngs"></div>
+    <button class="add-ing-btn" id="addLogIng">+ Add ingredient</button>
+    <div id="logTotals" style="text-align:center;color:var(--rose-bright);font-size:13px;margin:16px 0 4px;"></div>
+    <button class="btn" id="logSave">Log it</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // ===== YOUR SUPABASE CONNECTION =====
+  const SUPABASE_URL = "https://wbcclqzuinxudvxrlciz.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_fU2eDOdv90Bif5u1j0VVdg_XNNlUrM0";
+  // ====================================
+
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => (s == null ? "" : String(s)).replace(/"/g, "&quot;");
+  const authScreen = $("authScreen"), appScreen = $("appScreen"), appNav = $("appNav");
+  let RECIPES = [], INGS = {}, currentId = null, PROFILE = null, PLAN = [null,null,null,null,null,null,null], CURRENT_EMAIL = "", LOG = [], logSlot = null, DEFAULTS = [];
+  const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  const todayKey = () => new Date().toISOString().slice(0,10);
+
+  const SEED = [
+    ["Ground Beef Sweet Potato Bowls","dinner",[
+      ["Grass-fed ground beef 93/7","6 oz","1.5 lb",34.5,0,12,255],
+      ["White onion","1/4 onion","1 onion",0.5,3,0,12],
+      ["Olive oil (cooking)","0.5 tbsp","2 tbsp",0,0,7,60],
+      ["Sweet potato","1 medium","4 medium",2,26,0,112],
+      ["Olive oil (drizzle)","0.5 tbsp","2 tbsp",0,0,7,60],
+      ["Avocado","1/2","2 whole",1.5,6,11,120],
+      ["Celtic salt + seasonings","to taste","pantry",0,0,0,0]],
+      "1. Cube sweet potatoes, toss in olive oil + Celtic salt, roast at 425°F for ~25 min.\n2. Cook diced onion in olive oil, add ground beef + seasonings, brown until cooked through.\n3. Combine beef and sweet potato in bowls; top each with half an avocado."],
+    ["Taco Bowls","dinner",[
+      ["Grilled chicken breast","6 oz","1.5 lb",35,0,4,186],
+      ["White rice","3/4 cup cooked","3 cups cooked",3,33,0,150],
+      ["Black beans","1/3 cup","1 can (15 oz)",5,13,0.5,75],
+      ["Corn","1/4 cup","1 cup",1,7,0,33],
+      ["Lettuce","handful","1 head",0,1,0,5],
+      ["Cheese","1 oz","4 oz",7,1,9,110],
+      ["Salsa","2 tbsp","1 jar",0,2,0,10],
+      ["Sour cream","1 tbsp","small tub",0,1,3,30]],
+      "1. Season and grill the chicken, then slice.\n2. Cook the rice; warm the black beans and corn.\n3. Build bowls with rice, chicken, beans, corn and lettuce; top with cheese, salsa and sour cream."],
+    ["Crispy Rice Salmon Bowls","dinner",[
+      ["Salmon","6 oz","1.5 lb",34,0,11,240],
+      ["Honey","1 tsp","small bottle",0,6,0,21],
+      ["Coconut aminos","2 tbsp","1 bottle",0,4,0,20],
+      ["Garlic / lemon / paprika","to taste","pantry",0,1,0,5],
+      ["White rice","3/4 cup cooked","3 cups cooked",3,33,0,150],
+      ["Avocado (or broccoli)","1/2 avocado","2 whole",1.5,6,11,120]],
+      "1. Marinate salmon in salt, paprika, coconut aminos, honey, garlic and lemon juice.\n2. Spread cooked rice on a tray, drizzle with coconut aminos, and bake at 400°F with the salmon until the rice crisps and the salmon flakes.\n3. Serve with avocado or broccoli."],
+    ["Burger Lettuce Wrap","dinner",[
+      ["Beef patty (85/15)","6 oz","1.5 lb",32,0,18,290],
+      ["Mayo","1 tbsp","1 jar",0,0,10,90],
+      ["Lettuce (wrap)","2-3 leaves","2 heads",0,1,0,8],
+      ["Cheese","1 slice","1 pack",5,1,6,80]],
+      "1. Form and cook the beef patties to your liking.\n2. Add cheese and let it melt.\n3. Wrap each patty in lettuce leaves with your chosen mayo."],
+    ["Protein Pasta","dinner",[
+      ["Protein pasta (dry)","2 oz","16 oz box",14,32,2,190],
+      ["Ground beef or turkey 93/7","5 oz","1.25 lb",29,0,10,210],
+      ["White onion","1/4 onion","1 onion",0.5,3,0,12],
+      ["Rao's marinara","1/2 cup","1 jar",2,6,5,90]],
+      "1. Boil the protein pasta per the package.\n2. Brown the ground beef or turkey with diced onion.\n3. Stir in Rao's marinara, simmer, then toss with the pasta."],
+    ["Stuffed Bell Peppers","dinner",[
+      ["Bell peppers","1.5 peppers","6 peppers",1.5,11,0,45],
+      ["Ground turkey or beef 93/7","6 oz","1.5 lb",33,0,12,240],
+      ["White onion","1/4 onion","1 onion",0.5,3,0,12],
+      ["Garlic","to taste","1 head",0,1,0,5],
+      ["Cheese","1 oz","4 oz",7,1,9,110],
+      ["Chicken broth","splash","1 carton",0,0,0,5]],
+      "1. Halve and seed the bell peppers.\n2. Cook the ground turkey/beef with onion and garlic.\n3. Stuff the peppers, top with cheese, and bake in a dish with a little chicken broth at 375°F for ~30 min."],
+    ["Salmon with Sweet Potato","dinner",[
+      ["Salmon","6 oz","1.5 lb",34,0,11,240],
+      ["Sweet potato","1 medium","4 medium",2,26,0,112],
+      ["Olive oil","0.5 tbsp","2 tbsp",0,0,7,60],
+      ["Seasonings","to taste","pantry",0,0,0,0]],
+      "1. Cube the sweet potato, toss in olive oil + salt, roast at 425°F for ~25 min.\n2. Season the salmon and bake or pan-sear until it flakes.\n3. Plate together."],
+    ["Chicken Fajitas","dinner",[
+      ["Chicken breast","6 oz","1.5 lb",35,0,4,186],
+      ["Olive oil","0.5 tbsp","2 tbsp",0,0,7,60],
+      ["Bell peppers","1 pepper","4 peppers",1,7,0,30],
+      ["White onion","1/2 onion","2 onions",1,6,0,24],
+      ["Fajita seasoning","to taste","pantry",0,0,0,0]],
+      "1. Slice the chicken, season, and cook in olive oil until done.\n2. Sauté sliced bell peppers and onion until tender.\n3. Combine and serve."],
+    ["Steak with Veggie","dinner",[
+      ["Steak (sirloin)","6 oz","1.5 lb",36,0,16,300],
+      ["Broccoli or asparagus","1.5 cups","~2 lb",4,9,0.5,45],
+      ["Olive oil or butter","0.5 tbsp","2 tbsp",0,0,7,60]],
+      "1. Season the steak, sear to your preferred doneness, then rest.\n2. Roast or steam the broccoli/asparagus with a little oil or butter.\n3. Slice the steak and plate."],
+    ["Salmon Cucumber Salad","dinner",[
+      ["Salmon","6 oz","1.5 lb",34,0,11,240],
+      ["Cucumber","1/2 cup","2 cucumbers",0,2,0,8],
+      ["Red onion","2 tbsp","1 onion",0,2,0,8],
+      ["Cream cheese","1 tbsp","1 tub",1,1,5,50],
+      ["Avocado","1/4","1 whole",1,3,5,60],
+      ["Greek yogurt","2 tbsp","1 small tub",3,1,0,18],
+      ["Mayo","1 tsp","1 jar",0,0,3,30],
+      ["Lemon/garlic/coconut aminos","to taste","pantry",0,2,0,10],
+      ["Chili oil","1 tsp","1 bottle",0,0,5,45],
+      ["Edamame (shelled)","1/4 cup","1 bag",5,5,2.5,60]],
+      "1. Cook the seasoned salmon, then flake and let it cool.\n2. Combine cucumber, red onion and edamame.\n3. Stir in cream cheese, greek yogurt, mayo, lemon, garlic, coconut aminos and chili oil; gently fold in the salmon and avocado."],
+    ["Teriyaki Chicken and Rice","dinner",[
+      ["Chicken breast","6 oz","1.5 lb",35,0,4,186],
+      ["Coconut aminos","1.5 tbsp","1 bottle",0,3,0,15],
+      ["Honey","1 tsp","small bottle",0,6,0,21],
+      ["Cornstarch","1 tsp","1 box",0,2,0,10],
+      ["Rice vinegar/garlic/lemon","to taste","pantry",0,1,0,5],
+      ["White rice","3/4 cup cooked","3 cups cooked",3,33,0,150],
+      ["Broccoli","1 cup","~1.5 lb",2.5,6,0,30]],
+      "1. Cook the rice; steam the broccoli.\n2. Whisk coconut aminos, honey, garlic, lemon and rice vinegar; thicken with a cornstarch slurry.\n3. Cook the seasoned chicken, toss in the sauce, and serve over rice with broccoli."],
+    ["Greek Yogurt Bowl","breakfast",[
+      ["Fage Greek yogurt (0-2%)","1 cup","32 oz tub",25,8,0,140],
+      ["Blueberries","1/2 cup","1 pint",0.5,11,0,42],
+      ["Ground flaxseed","1 tbsp","1 bag",1.3,2,3,37]],
+      "Spoon the Fage into a bowl and top with blueberries and ground flaxseed."],
+    ["Eggs & Ezekiel Toast","breakfast",[
+      ["Eggs","2 large","1 dozen",12,1,10,143],
+      ["Ezekiel bread","1 slice","1 loaf",4,15,0.5,80],
+      ["Avocado (optional)","1/2","bag of avocados",1.5,6,11,120]],
+      "1. Toast the Ezekiel bread.\n2. Cook the eggs to your preference.\n3. Top the toast with the eggs and sliced avocado."],
+    ["Veggie Quiche","breakfast",[
+      ["Eggs","3 large","1 dozen",18.5,1.5,14.5,215],
+      ["Cottage cheese","1/3 cup","1 tub",8,3,1.5,65],
+      ["White onion","2 tbsp","1 onion",0,2,0,8],
+      ["Bell pepper","1/4","2 peppers",0.3,2,0,8],
+      ["Cheese","1 oz","4 oz",7,1,9,110],
+      ["Spinach","1 cup","1 bag",1,1,0,7]],
+      "1. Whisk the eggs with the cottage cheese.\n2. Stir in diced onion, bell pepper, spinach and cheese.\n3. Pour into a dish and bake at 375°F for ~25-30 min until set."]
+  ];
+
+  function showApp(){ authScreen.classList.add("hidden"); appScreen.classList.remove("hidden"); appNav.classList.remove("hidden"); loadRecipes(); loadProfile(); loadPlan(); ensureDailyDefaults(); showScreen("Recipes"); }
+  function showAuth(){ appScreen.classList.add("hidden"); appNav.classList.add("hidden"); authScreen.classList.remove("hidden"); }
+
+  // ----- Daily default items (e.g. a latte every morning) -----
+  async function loadDefaults(){ const { data } = await db.from("daily_defaults").select("*"); DEFAULTS = data || []; }
+  function renderDefaultList(){
+    const box = $("defaultList");
+    if (!DEFAULTS.length){ box.innerHTML = '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">None yet.</div>'; return; }
+    box.innerHTML = DEFAULTS.map(d =>
+      '<div class="recipe" style="cursor:default;padding:10px 13px"><div style="flex:1"><div class="name">'+d.label+'</div>'
+      +'<div class="meta">'+fmtMacros({p:+d.protein,c:+d.carbs,f:+d.fat,cal:+d.calories})+'</div></div>'
+      +'<button class="meal-btn ghost" onclick="removeDefault(\''+d.id+'\')">Remove</button></div>').join("");
+  }
+  window.removeDefault = async (id) => { await db.from("daily_defaults").delete().eq("id", id); await loadDefaults(); renderDefaultList(); };
+  async function ensureDailyDefaults(){
+    await loadDefaults();
+    const key = "mp_defaults_" + todayKey();
+    if (!localStorage.getItem(key)){
+      for (const d of DEFAULTS){
+        await db.from("daily_log").insert({ log_date: todayKey(), slot:"extra", label:d.label, protein:d.protein, carbs:d.carbs, fat:d.fat, calories:d.calories });
+      }
+      localStorage.setItem(key, "1");
+      if (!$("screenToday").classList.contains("hidden")) renderToday();
+    }
+  }
+
+  // ----- Screen navigation -----
+  window.showScreen = function(name){
+    ["Today","Plan","Recipes","Shop"].forEach(s => {
+      $("screen"+s).classList.toggle("hidden", s !== name);
+      $("nav"+s).classList.toggle("active", s === name);
+    });
+    if (name === "Today") renderToday();
+    if (name === "Plan") renderPlan();
+    if (name === "Shop") renderShop();
+  };
+
+  // ----- Today -----
+  function recipeTotals(id){
+    return (INGS[id]||[]).reduce((a,i)=>({p:a.p+ +i.protein,c:a.c+ +i.carbs,f:a.f+ +i.fat,cal:a.cal+ +i.calories}),{p:0,c:0,f:0,cal:0});
+  }
+  function fmtMacros(t){ return Math.round(t.p)+'p · '+Math.round(t.c)+'c · '+Math.round(t.f)+'f · '+Math.round(t.cal)+' cal'; }
+  function macroBar(label,val,target,color){
+    const pct = Math.min(100, Math.round(val/target*100)) || 0;
+    return '<div style="font-size:11px;color:var(--text2);display:flex;justify-content:space-between"><span>'+label+'</span><span style="color:var(--text)">'+Math.round(val)+' / '+target+'</span></div>'
+      +'<div style="height:4px;background:#352B30;border-radius:4px;margin:4px 0 9px"><div style="height:4px;width:'+pct+'%;background:'+color+';border-radius:4px"></div></div>';
+  }
+  async function loadLog(){
+    const { data } = await db.from("daily_log").select("*").eq("log_date", todayKey());
+    LOG = data || [];
+  }
+  function loggedCard(label, row, isExtra){
+    const ref = isExtra ? ("id:"+row.id) : row.slot;
+    return '<div class="recipe" style="cursor:default"><span class="dot" style="background:#C2A36B"></span>'
+      +'<div style="flex:1"><div class="meta">'+(label?label+' · logged':'Extra · logged')+'</div>'
+      +'<div class="name">'+row.label+'</div>'
+      +'<div class="meta">'+fmtMacros({p:+row.protein,c:+row.carbs,f:+row.fat,cal:+row.calories})+'</div></div>'
+      +'<button class="meal-btn ghost" onclick="undoLog(\''+ref+'\')">Undo</button></div>';
+  }
+  function slotBlock(slot, label, id){
+    const log = LOG.find(r => r.slot === slot);
+    if (log) return loggedCard(label, log);
+    if (!id) return '<div class="recipe" style="cursor:default"><span class="dot" style="background:#4A3A33"></span><div><div class="meta">'+label+'</div><div class="name" style="color:var(--muted)">Nothing planned</div></div></div>'
+      + '<div class="meal-actions"><button class="meal-btn" onclick="logSomethingElse(\''+slot+'\',null)">Log a meal</button></div>';
+    const nm = (RECIPES.find(x=>x.id===id)||{}).name || "Meal";
+    return '<div class="recipe" onclick="openRecipe(\''+id+'\')"><span class="dot"></span><div style="flex:1"><div class="meta">'+label+'</div><div class="name">'+nm+'</div><div class="meta">'+fmtMacros(recipeTotals(id))+'</div></div><span class="chev">›</span></div>'
+      + '<div class="meal-actions"><button class="meal-btn" onclick="logPlanned(\''+slot+'\',\''+id+'\')">Ate it</button><button class="meal-btn ghost" onclick="logSomethingElse(\''+slot+'\',\''+id+'\')">Something else</button></div>';
+  }
+  function summaryCardHTML(day, tp, tcal, tc, tf){
+    const G="#7FA06A", W="#D98A8A", I="#D79DB0", N="#8E8188";
+    const lines = [];
+    if (!LOG.length){
+      lines.push([N, "Nothing logged yet — tap “Ate it” on your meals to build today’s summary."]);
+    } else {
+      const pShort = Math.round(tp - day.p);
+      if (day.p >= tp) lines.push([G, "Protein goal hit ("+Math.round(day.p)+"g). Great for building muscle."]);
+      else if (day.cal >= tcal*0.95) lines.push([W, "You're "+pShort+"g short on protein but already near your calorie limit — lean more on protein and less on fat/carbs tomorrow."]);
+      else lines.push([I, "You're "+pShort+"g short on protein — a Greek yogurt, cottage cheese, or protein shake would close the gap."]);
+
+      if (day.cal > tcal*1.1) lines.push([W, "Calories are "+Math.round(day.cal-tcal)+" over target ("+Math.round(day.cal)+" vs "+tcal+")."]);
+      else if (day.cal < tcal*0.8) lines.push([I, "You're well under on calories ("+Math.round(day.cal)+" of "+tcal+") — make sure you eat enough to fuel training and recovery."]);
+      else lines.push([G, "Calories are on track ("+Math.round(day.cal)+" of "+tcal+")."]);
+
+      if (day.f > tf*1.1) lines.push([W, "Fat is over target ("+Math.round(day.f)+"g vs "+tf+"g) — go a little lighter on oils and cheese."]);
+      if (day.c > tc*1.15) lines.push([I, "Carbs are above target ("+Math.round(day.c)+"g vs "+tc+"g) — fine on training days, ease off on rest days."]);
+      if (day.f <= tf*1.1 && day.c <= tc*1.15 && day.p >= tp*0.9) lines.push([G, "Nice balance across your macros today."]);
+    }
+    return '<div class="summary-card"><div class="group-label" style="margin:0 0 6px">Today’s summary</div>'
+      + lines.map(l => '<div class="sum-line"><span class="sum-dot" style="background:'+l[0]+'"></span><span>'+l[1]+'</span></div>').join("")
+      + '<div style="font-size:11px;color:#8E8188;margin-top:9px">Based on your macros. Vitamin &amp; micronutrient insights come with the AI nutritionist.</div></div>';
+  }
+  async function renderToday(){
+    await loadLog();
+    const now = new Date();
+    const tIdx = (now.getDay()+6)%7, yIdx = (tIdx+6)%7;
+    const hr = now.getHours();
+    const greet = hr<12 ? "Good morning" : hr<18 ? "Good afternoon" : "Good evening";
+    let nm = (PROFILE && PROFILE.display_name) ? PROFILE.display_name : (CURRENT_EMAIL ? CURRENT_EMAIL.split("@")[0] : "");
+    $("todayGreet").textContent = greet + (nm ? ", " + nm : "");
+    $("todayDate").textContent = now.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
+
+    const breakfasts = RECIPES.filter(r=>r.meal_type==="breakfast");
+    const bId = localStorage.getItem("mp_bfast_"+todayKey()) || (breakfasts[0] && breakfasts[0].id) || "";
+    const lunchId = PLAN[yIdx], dinnerId = PLAN[tIdx];
+
+    const tp = (PROFILE&&PROFILE.target_protein)||135, tcal=(PROFILE&&PROFILE.target_calories)||1800,
+          tc = (PROFILE&&PROFILE.target_carbs)||180, tf=(PROFILE&&PROFILE.target_fat)||60;
+    const day = LOG.reduce((a,r)=>({p:a.p+ +r.protein,c:a.c+ +r.carbs,f:a.f+ +r.fat,cal:a.cal+ +r.calories}),{p:0,c:0,f:0,cal:0});
+    const off = 213.6*(1-Math.min(1, tp ? day.p/tp : 0));
+
+    let html = '<div class="macro-card">'
+      + '<svg width="86" height="86" viewBox="0 0 90 90" aria-hidden="true">'
+      +   '<circle cx="45" cy="45" r="34" fill="none" stroke="#352B30" stroke-width="8"></circle>'
+      +   '<circle cx="45" cy="45" r="34" fill="none" stroke="#C98BA0" stroke-width="8" stroke-linecap="round" stroke-dasharray="213.6" stroke-dashoffset="'+off+'" transform="rotate(-90 45 45)"></circle>'
+      +   '<text x="45" y="42" text-anchor="middle" style="font-family:var(--serif);font-size:20px;fill:#F2E9ED">'+Math.round(day.p)+'</text>'
+      +   '<text x="45" y="56" text-anchor="middle" style="font-size:9px;fill:#8E8188">/ '+tp+'g</text>'
+      + '</svg><div style="flex:1">'
+      +   '<div style="font-size:11px;color:var(--rose-bright);margin-bottom:8px">Eaten so far · '+Math.max(0,Math.round(tp-day.p))+'g protein to go</div>'
+      +   macroBar('Calories',day.cal,tcal,'#C2A36B')
+      +   macroBar('Carbs',day.c,tc,'#B57E92')
+      +   macroBar('Fat',day.f,tf,'#9E8C84')
+      + '</div></div>'
+      + summaryCardHTML(day, tp, tcal, tc, tf)
+      + '<div class="group-label">Today’s meals</div>';
+
+    const bLog = LOG.find(r=>r.slot==="breakfast");
+    if (bLog){ html += loggedCard("Breakfast", bLog); }
+    else {
+      const opts = breakfasts.map(r=>'<option value="'+r.id+'"'+(r.id===bId?' selected':'')+'>'+r.name+'</option>').join("");
+      html += '<div class="plan-day" style="margin-bottom:8px"><span class="d">B</span><select id="bfastSel">'+(opts||'<option value="">No breakfasts yet</option>')+'</select></div>'
+        + '<div class="meal-actions"><button class="meal-btn" onclick="logBreakfast()">Ate it</button><button class="meal-btn ghost" onclick="logSomethingElse(\'breakfast\',null)">Something else</button></div>';
+    }
+    html += slotBlock("lunch", "Lunch · yesterday’s dinner", lunchId);
+    html += slotBlock("dinner", "Dinner", dinnerId);
+
+    const extras = LOG.filter(r=>r.slot==="extra");
+    if (extras.length){ html += '<div class="group-label">Extras</div>'; extras.forEach(e => html += loggedCard(null, e, true)); }
+    html += '<button class="add-ing-btn" style="margin-top:6px" onclick="addExtra()">+ Log a snack or extra</button>';
+
+    $("todayBody").innerHTML = html;
+    const bsel = $("bfastSel");
+    if (bsel) bsel.onchange = () => { localStorage.setItem("mp_bfast_"+todayKey(), bsel.value); };
+  }
+
+  // ----- Check-in actions -----
+  window.logBreakfast = async () => {
+    const sel = $("bfastSel");
+    if (!sel || !sel.value){ alert("Pick a breakfast first."); return; }
+    logPlanned("breakfast", sel.value);
+  };
+  window.logPlanned = async (slot, id) => {
+    const t = recipeTotals(id), nm = (RECIPES.find(x=>x.id===id)||{}).name || "Meal";
+    await db.from("daily_log").delete().eq("log_date", todayKey()).eq("slot", slot);
+    await db.from("daily_log").insert({ log_date: todayKey(), slot, label: nm, protein:t.p, carbs:t.c, fat:t.f, calories:t.cal });
+    renderToday();
+  };
+  window.undoLog = async (ref) => {
+    if (ref.indexOf("id:") === 0) await db.from("daily_log").delete().eq("id", ref.slice(3));
+    else await db.from("daily_log").delete().eq("log_date", todayKey()).eq("slot", ref);
+    renderToday();
+  };
+  window.logSomethingElse = (slot, id) => openLogModal(slot, id);
+  window.addExtra = () => openLogModal("extra", null);
+
+  const logRows = () => [...$("logIngs").querySelectorAll(".edit-ing")];
+  function updateLogTotals(){
+    const t = logRows().reduce((a,w)=>({
+      p:a.p+(+w.querySelector(".lf-p").value||0), c:a.c+(+w.querySelector(".lf-c").value||0),
+      f:a.f+(+w.querySelector(".lf-f").value||0), cal:a.cal+(+w.querySelector(".lf-cal").value||0)
+    }),{p:0,c:0,f:0,cal:0});
+    $("logTotals").textContent = "Total: "+Math.round(t.p)+"p · "+Math.round(t.c)+"c · "+Math.round(t.f)+"f · "+Math.round(t.cal)+" cal";
+  }
+  function buildLogRow(pre){
+    pre = pre || {ingredient:"",amount:"",protein:0,carbs:0,fat:0,calories:0};
+    const w = document.createElement("div"); w.className = "edit-ing";
+    w.innerHTML =
+      '<input class="lf-ing" placeholder="Food (e.g. strawberries)" value="'+esc(pre.ingredient)+'">'
+      +'<input class="lf-amt" placeholder="Amount (e.g. 5, 100 g, 1 cup)" value="'+esc(pre.amount)+'" style="margin-top:7px;">'
+      +'<div class="row4" style="margin-top:7px;">'
+      +'<div class="mfield"><label>Protein g</label><input class="lf-p" type="number" step="any" value="'+(+pre.protein||0)+'"></div>'
+      +'<div class="mfield"><label>Carbs g</label><input class="lf-c" type="number" step="any" value="'+(+pre.carbs||0)+'"></div>'
+      +'<div class="mfield"><label>Fat g</label><input class="lf-f" type="number" step="any" value="'+(+pre.fat||0)+'"></div>'
+      +'<div class="mfield"><label>Calories</label><input class="lf-cal" type="number" step="any" value="'+(+pre.calories||0)+'"></div></div>'
+      +'<div class="ing-actions"><button class="auto-ing">↻ Auto-fill macros</button><button class="remove-ing">Remove</button></div>'
+      +'<div class="auto-msg"></div>';
+    w.querySelector(".remove-ing").onclick = () => { w.remove(); updateLogTotals(); };
+    w.querySelector(".auto-ing").onclick = () => {
+      const nm = w.querySelector(".lf-ing").value.trim(), amt = w.querySelector(".lf-amt").value.trim();
+      const msg = w.querySelector(".auto-msg");
+      if (!nm){ msg.textContent = "Type the food name first."; return; }
+      const r = lookupMacros(nm, amt || "1");
+      if (!r){ msg.textContent = "No match — enter the macros by hand."; return; }
+      w.querySelector(".lf-p").value = r.p; w.querySelector(".lf-c").value = r.c;
+      w.querySelector(".lf-f").value = r.f; w.querySelector(".lf-cal").value = r.cal;
+      msg.textContent = "Filled — adjust if needed."; updateLogTotals();
+    };
+    w.querySelectorAll(".lf-p,.lf-c,.lf-f,.lf-cal").forEach(inp => inp.oninput = updateLogTotals);
+    $("logIngs").appendChild(w);
+  }
+  function openLogModal(slot, prefillId){
+    logSlot = slot;
+    $("logSlotLabel").textContent = slot === "__default__" ? "New daily item" : slot === "extra" ? "Log an extra" : "Log "+slot;
+    $("logIngs").innerHTML = "";
+    if (prefillId){
+      const r = RECIPES.find(x=>x.id===prefillId);
+      $("logName").value = r ? r.name : "";
+      const rows = INGS[prefillId] || [];
+      rows.forEach(i => buildLogRow({ingredient:i.ingredient, amount:i.per_serving, protein:i.protein, carbs:i.carbs, fat:i.fat, calories:i.calories}));
+      if (!rows.length) buildLogRow();
+    } else {
+      $("logName").value = ""; buildLogRow();
+    }
+    updateLogTotals();
+    $("logModal").classList.remove("hidden");
+  }
+  $("addLogIng").onclick = () => buildLogRow();
+  $("logSave").onclick = async () => {
+    const t = logRows().reduce((a,w)=>({
+      p:a.p+(+w.querySelector(".lf-p").value||0), c:a.c+(+w.querySelector(".lf-c").value||0),
+      f:a.f+(+w.querySelector(".lf-f").value||0), cal:a.cal+(+w.querySelector(".lf-cal").value||0)
+    }),{p:0,c:0,f:0,cal:0});
+    const label = $("logName").value.trim()
+      || logRows().map(w=>w.querySelector(".lf-ing").value.trim()).filter(Boolean).join(", ")
+      || "Meal";
+    const macros = { label, protein:round1(t.p), carbs:round1(t.c), fat:round1(t.f), calories:Math.round(t.cal) };
+    if (logSlot === "__default__"){
+      await db.from("daily_defaults").insert(macros);
+      await db.from("daily_log").insert({ log_date: todayKey(), slot:"extra", ...macros });
+      $("logModal").classList.add("hidden");
+      await loadDefaults(); renderDefaultList();
+      if (!$("screenToday").classList.contains("hidden")) renderToday();
+      return;
+    }
+    if (logSlot !== "extra") await db.from("daily_log").delete().eq("log_date", todayKey()).eq("slot", logSlot);
+    await db.from("daily_log").insert({ log_date: todayKey(), slot: logSlot, ...macros });
+    $("logModal").classList.add("hidden");
+    renderToday();
+  };
+  $("logClose").onclick = () => $("logModal").classList.add("hidden");
+  $("logModal").onclick = (e) => { if (e.target === $("logModal")) $("logModal").classList.add("hidden"); };
+
+  // ----- Weekly plan -----
+  async function loadPlan(){
+    PLAN = [null,null,null,null,null,null,null];
+    const { data } = await db.from("plan_dinners").select("day_index,recipe_id");
+    (data||[]).forEach(r => { if (r.day_index >= 0 && r.day_index < 7) PLAN[r.day_index] = r.recipe_id; });
+  }
+  function renderPlan(){
+    const dinners = RECIPES.filter(r => r.meal_type === "dinner");
+    $("planDays").innerHTML = DAYS.map((d,i) => {
+      const opts = '<option value="">— none —</option>' + dinners.map(r =>
+        '<option value="'+r.id+'"'+(PLAN[i]===r.id?' selected':'')+'>'+r.name+'</option>').join("");
+      return '<div class="plan-day"><span class="d">'+d+'</span><select class="plan-sel" data-day="'+i+'">'+opts+'</select></div>';
+    }).join("");
+  }
+  $("savePlanBtn").onclick = async () => {
+    $("planDays").querySelectorAll(".plan-sel").forEach(s => { PLAN[+s.dataset.day] = s.value || null; });
+    await db.from("plan_dinners").delete().not("id","is",null);
+    const rows = PLAN.map((rid,i) => rid ? { day_index:i, recipe_id:rid } : null).filter(Boolean);
+    if (rows.length) await db.from("plan_dinners").insert(rows);
+    showScreen("Shop");
+  };
+  $("surpriseBtn").onclick = () => {
+    const dinners = RECIPES.filter(r => r.meal_type === "dinner");
+    if (!dinners.length){ alert("Add some dinners first."); return; }
+    const shuffled = [...dinners].sort(() => Math.random() - 0.5);
+    PLAN = Array(7).fill(null).map((_,i) => shuffled[i % shuffled.length].id);
+    renderPlan();
+  };
+
+  // ----- Shopping list (combines ingredients across the planned dinners) -----
+  function renderShop(){
+    const box = $("shopList");
+    const ids = PLAN.filter(Boolean);
+    if (!ids.length){ box.innerHTML = '<div class="empty">No meals planned yet. Go to Plan and pick your week.</div>'; return; }
+    const acc = {}, extras = [];
+    ids.forEach(rid => (INGS[rid]||[]).forEach(i => {
+      const amt = (i.shopping_amount||"").trim();
+      if (!amt || /pantry|to taste/i.test(amt)) return;
+      const m = amt.match(/^([\d.\/ ]+?)\s*([a-zA-Z(].*)$/);
+      const num = m ? parseNumber(m[1]) : NaN;
+      if (!m || isNaN(num)){ extras.push(amt + " " + i.ingredient); return; }
+      const unit = m[2].trim();
+      const key = i.ingredient.toLowerCase() + "|" + unit.toLowerCase();
+      if (!acc[key]) acc[key] = { n:i.ingredient, u:unit, q:0 };
+      acc[key].q += num;
+    }));
+    const items = Object.values(acc).map(x => {
+      const q = x.q % 1 === 0 ? x.q : Math.round(x.q*10)/10;
+      return q + " " + x.u + " " + x.n;
+    }).concat(extras).sort();
+    box.innerHTML = items.map(t =>
+      '<label class="shop-item"><input type="checkbox" onchange="this.parentNode.classList.toggle(\'checked\',this.checked)"> '+t+'</label>'
+    ).join("");
+  }
+
+  // ----- Cooking-fat profile / settings -----
+  async function loadProfile(){
+    const { data } = await db.from("profiles").select("*").maybeSingle();
+    if (!data){
+      const { data: ins } = await db.from("profiles").insert({}).select().single();
+      PROFILE = ins || { cooking_fat:"Olive oil", cooking_fat_amount:"0.5 tbsp" };
+      openPref(true);
+    } else { PROFILE = data; }
+  }
+  function openPref(onboarding){
+    $("prefEyebrow").textContent = onboarding ? "Quick setup" : "Settings";
+    $("pName").value = (PROFILE && PROFILE.display_name) || "";
+    $("pFat").value = (PROFILE && PROFILE.cooking_fat) || "Olive oil";
+    $("pAmt").value = (PROFILE && PROFILE.cooking_fat_amount) || "0.5 tbsp";
+    $("tProtein").value = (PROFILE && PROFILE.target_protein) || 135;
+    $("tCalories").value = (PROFILE && PROFILE.target_calories) || 1800;
+    $("tCarbs").value = (PROFILE && PROFILE.target_carbs) || 180;
+    $("tFat").value = (PROFILE && PROFILE.target_fat) || 60;
+    loadDefaults().then(renderDefaultList);
+    $("prefModal").classList.remove("hidden");
+  }
+  $("addDefaultBtn").onclick = () => openLogModal("__default__", null);
+  $("prefSave").onclick = async () => {
+    const upd = {
+      display_name: $("pName").value.trim(),
+      cooking_fat: $("pFat").value, cooking_fat_amount: $("pAmt").value.trim() || "0.5 tbsp",
+      target_protein: +$("tProtein").value || 135, target_calories: +$("tCalories").value || 1800,
+      target_carbs: +$("tCarbs").value || 180, target_fat: +$("tFat").value || 60
+    };
+    if (PROFILE && PROFILE.user_id) await db.from("profiles").update(upd).eq("user_id", PROFILE.user_id);
+    if (PROFILE) Object.assign(PROFILE, upd);
+    $("prefModal").classList.add("hidden");
+    if (!$("screenToday").classList.contains("hidden")) renderToday();
+  };
+  $("settingsBtn").onclick = () => openPref(false);
+  $("prefClose").onclick = () => $("prefModal").classList.add("hidden");
+  $("prefModal").onclick = (e) => { if (e.target === $("prefModal")) $("prefModal").classList.add("hidden"); };
+
+  $("signUpBtn").onclick = async () => {
+    const { error } = await db.auth.signUp({ email: $("email").value, password: $("password").value });
+    $("authMsg").textContent = error ? error.message : "Account created — now tap Sign in.";
+  };
+  $("signInBtn").onclick = async () => {
+    const { error } = await db.auth.signInWithPassword({ email: $("email").value, password: $("password").value });
+    if (error) $("authMsg").textContent = error.message;
+  };
+  $("signOutBtn").onclick = async () => { await db.auth.signOut(); };
+
+  $("addBtn").onclick = async () => {
+    const name = $("newRecipe").value.trim();
+    if (!name) return;
+    const { error } = await db.from("recipes").insert({ name: name, meal_type: "dinner" });
+    if (error) { alert(error.message); return; }
+    $("newRecipe").value = ""; loadRecipes();
+  };
+
+  async function loadRecipes(){
+    const list = $("recipeList");
+    const { data: recipes, error } = await db.from("recipes").select("*").order("meal_type").order("name");
+    if (error){ list.innerHTML = '<div class="empty">'+error.message+'</div>'; return; }
+    if (!recipes.length){ list.innerHTML = '<div class="empty">No recipes yet — tap “Load my 14 starter meals” above.</div>'; return; }
+    const { data: ings } = await db.from("recipe_ingredients")
+      .select("recipe_id,ingredient,per_serving,shopping_amount,protein,carbs,fat,calories");
+    RECIPES = recipes; INGS = {};
+    const tot = {};
+    (ings||[]).forEach(i => {
+      (INGS[i.recipe_id] = INGS[i.recipe_id] || []).push(i);
+      const t = tot[i.recipe_id] || (tot[i.recipe_id] = {p:0,c:0,f:0,cal:0});
+      t.p += +i.protein; t.c += +i.carbs; t.f += +i.fat; t.cal += +i.calories;
+    });
+    let html = "", lastType = "";
+    recipes.forEach(r => {
+      if (r.meal_type !== lastType){ html += '<div class="group-label">'+r.meal_type+'s</div>'; lastType = r.meal_type; }
+      const t = tot[r.id];
+      const meta = t ? Math.round(t.p)+'p · '+Math.round(t.c)+'c · '+Math.round(t.f)+'f · '+Math.round(t.cal)+' cal' : r.meal_type;
+      html += '<div class="recipe" onclick="openRecipe(\''+r.id+'\')"><span class="dot"></span>'
+            + '<div><div class="name">'+r.name+'</div><div class="meta">'+meta+'</div></div>'
+            + '<span class="chev">›</span></div>';
+    });
+    list.innerHTML = html;
+  }
+
+  function showView(){ $("mView").classList.remove("hidden"); $("mEdit").classList.add("hidden"); }
+  function showEdit(){ $("mView").classList.add("hidden"); $("mEdit").classList.remove("hidden"); }
+
+  window.openRecipe = function(id){
+    const r = RECIPES.find(x => x.id === id);
+    const rows = INGS[id] || [];
+    if (!r) return;
+    currentId = id;
+    const t = rows.reduce((a,i)=>({p:a.p+ +i.protein,c:a.c+ +i.carbs,f:a.f+ +i.fat,cal:a.cal+ +i.calories}),{p:0,c:0,f:0,cal:0});
+    $("mType").textContent = r.meal_type;
+    $("mName").textContent = r.name;
+    $("mMacros").textContent = "Per serving: "+Math.round(t.p)+"p · "+Math.round(t.c)+"c · "+Math.round(t.f)+"f · "+Math.round(t.cal)+" cal";
+    $("mIngs").innerHTML = rows.map(i =>
+      '<div class="ing"><div class="ing-name">'+i.ingredient+'</div>'
+      +'<div class="ing-amt">'+(i.shopping_amount||"")+'<span class="ing-ps">'+(i.per_serving||"")+'/serving</span></div></div>'
+    ).join("");
+    $("mMethod").textContent = r.method || "No method saved yet.";
+    showView();
+    $("modal").classList.remove("hidden");
+  };
+
+  // ----- Food database for macro auto-fill -----
+  // Each food: macros per its base unit (u), plus g = grams in one base unit (lets us convert from grams/oz/lb).
+  const FOOD_DB = [
+    {k:["ground beef 85","beef patty","burger"],u:"oz",p:5.33,c:0,f:3,cal:48,g:28.35},
+    {k:["ground beef","ground turkey","turkey"],u:"oz",p:5.6,c:0,f:2,cal:41,g:28.35},
+    {k:["chicken"],u:"oz",p:5.83,c:0,f:0.67,cal:31,g:28.35},
+    {k:["salmon"],u:"oz",p:5.67,c:0,f:1.83,cal:40,g:28.35},
+    {k:["steak","sirloin"],u:"oz",p:6,c:0,f:2.67,cal:50,g:28.35},
+    {k:["egg"],u:"piece",p:6,c:0.5,f:5,cal:72,g:50},
+    {k:["protein pasta","banza","pasta"],u:"oz",p:7,c:16,f:1,cal:95,g:28.35},
+    {k:["white rice","rice"],u:"cup",p:4,c:44,f:0,cal:200,g:158},
+    {k:["sweet potato"],u:"piece",p:2,c:26,f:0,cal:112,g:130},
+    {k:["black bean","bean"],u:"cup",p:15,c:39,f:1.5,cal:225,g:172},
+    {k:["corn"],u:"cup",p:4,c:28,f:0,cal:132,g:145},
+    {k:["ezekiel","bread","toast"],u:"slice",p:4,c:15,f:0.5,cal:80,g:34},
+    {k:["honey"],u:"tsp",p:0,c:6,f:0,cal:21,g:7},
+    {k:["cornstarch"],u:"tsp",p:0,c:2,f:0,cal:10,g:3},
+    {k:["avocado"],u:"piece",p:3,c:12,f:22,cal:240,g:150},
+    {k:["olive oil","oil"],u:"tbsp",p:0,c:0,f:14,cal:120,g:13.5},
+    {k:["peanut butter","almond butter","nut butter"],u:"tbsp",p:3.5,c:3,f:8,cal:96,g:16},
+    {k:["butter"],u:"tbsp",p:0,c:0,f:11,cal:100,g:14},
+    {k:["cream cheese"],u:"tbsp",p:1,c:1,f:5,cal:50,g:15},
+    {k:["cottage cheese"],u:"cup",p:24,c:9,f:4.5,cal:195,g:226},
+    {k:["cheese"],u:"oz",p:7,c:1,f:9,cal:110,g:28.35},
+    {k:["mayo"],u:"tbsp",p:0,c:0,f:10,cal:90,g:14},
+    {k:["sour cream"],u:"tbsp",p:0,c:1,f:3,cal:30,g:12},
+    {k:["greek yogurt","yogurt","fage"],u:"cup",p:25,c:8,f:0,cal:140,g:227},
+    {k:["red onion"],u:"tbsp",p:0,c:1,f:0,cal:4,g:10},
+    {k:["onion"],u:"piece",p:2,c:12,f:0,cal:48,g:110},
+    {k:["bell pepper","pepper"],u:"piece",p:1,c:7,f:0,cal:30,g:120},
+    {k:["broccoli"],u:"cup",p:2.5,c:6,f:0,cal:30,g:91},
+    {k:["asparagus"],u:"cup",p:3,c:5,f:0,cal:27,g:134},
+    {k:["cucumber"],u:"cup",p:0,c:4,f:0,cal:16,g:120},
+    {k:["spinach"],u:"cup",p:1,c:1,f:0,cal:7,g:30},
+    {k:["lettuce"],u:"cup",p:0,c:1,f:0,cal:5,g:36},
+    {k:["edamame"],u:"cup",p:20,c:20,f:10,cal:240,g:155},
+    {k:["blueberr"],u:"cup",p:1,c:22,f:0,cal:84,g:148},
+    {k:["strawberr"],u:"piece",p:0.1,c:1,f:0,cal:4,g:12},
+    {k:["raspberr","blackberr"],u:"cup",p:1.5,c:15,f:0.8,cal:64,g:140},
+    {k:["banana"],u:"piece",p:1.3,c:27,f:0.4,cal:105,g:118},
+    {k:["apple"],u:"piece",p:0.5,c:25,f:0.3,cal:95,g:182},
+    {k:["almond milk","oat milk","milk"],u:"cup",p:8,c:12,f:8,cal:150,g:244},
+    {k:["espresso","coffee"],u:"cup",p:0,c:0,f:0,cal:2,g:240},
+    {k:["creamer"],u:"tbsp",p:0,c:5,f:1.5,cal:35,g:15},
+    {k:["almond","walnut","cashew"],u:"oz",p:6,c:6,f:14,cal:164,g:28.35},
+    {k:["oat","oatmeal"],u:"cup",p:11,c:55,f:5,cal:307,g:81},
+    {k:["protein powder","protein shake","whey","scoop"],u:"piece",p:24,c:3,f:1.5,cal:120,g:32},
+    {k:["flax"],u:"tbsp",p:1.3,c:2,f:3,cal:37,g:7},
+    {k:["salsa"],u:"tbsp",p:0,c:1,f:0,cal:5,g:16},
+    {k:["marinara","rao"],u:"cup",p:4,c:12,f:10,cal:180,g:245},
+    {k:["coconut amino","amino"],u:"tbsp",p:0,c:2,f:0,cal:10,g:15}
+  ];
+  const round1 = (x) => Math.round(x*10)/10;
+  function parseNumber(s){
+    let m = s.match(/(\d+)\s+(\d+)\/(\d+)/); if (m) return +m[1] + (+m[2]/+m[3]);
+    m = s.match(/(\d+)\/(\d+)/); if (m) return +m[1]/+m[2];
+    m = s.match(/\d*\.?\d+/); return m ? parseFloat(m[0]) : 1;
+  }
+  // Returns how many of the food's base units the amount string represents
+  function toUnits(str, food){
+    const s = (str||"").toLowerCase();
+    const n = parseNumber(s), u = food.u, g = food.g || 0;
+    if (/\bkg\b|kilo/.test(s) && g) return n*1000/g;
+    if (/\d\s*(g|gram|grams)\b/.test(s) && g) return n/g;        // grams → base units
+    if (/lb|pound/.test(s) && g) return n*453.6/g;
+    if (/\boz\b|ounce/.test(s)) return u === "oz" ? n : (g ? n*28.35/g : n);
+    if (u === "cup"){ if (/tbsp/.test(s)) return n/16; if (/tsp/.test(s)) return n/48; return n; }
+    if (u === "tbsp"){ if (/cup/.test(s)) return n*16; if (/tsp/.test(s)) return n/3; return n; }
+    if (u === "tsp"){ if (/tbsp/.test(s)) return n*3; if (/cup/.test(s)) return n*48; return n; }
+    return n;                                                    // count of pieces / slices / base unit
+  }
+  function lookupMacros(name, amount){
+    const food = FOOD_DB.find(f => f.k.some(k => name.toLowerCase().includes(k)));
+    if (!food) return null;
+    if (/to taste|pantry|splash|handful/i.test(amount||"")) return {p:0,c:0,f:0,cal:0};
+    const q = toUnits(amount || "1", food);
+    if (isNaN(q)) return null;
+    return {p:round1(food.p*q), c:round1(food.c*q), f:round1(food.f*q), cal:Math.round(food.cal*q)};
+  }
+
+  // ----- Edit mode -----
+  function addIngRow(i){
+    i = i || {ingredient:"",per_serving:"",shopping_amount:"",protein:0,carbs:0,fat:0,calories:0};
+    const w = document.createElement("div"); w.className = "edit-ing";
+    w.innerHTML =
+      '<input class="f-ing" placeholder="Ingredient (e.g. chicken breast)" value="'+esc(i.ingredient)+'">'
+      +'<div class="row2"><input class="f-ps" placeholder="per serving (e.g. 6 oz)" value="'+esc(i.per_serving)+'">'
+      +'<input class="f-shop" placeholder="for 4 servings" value="'+esc(i.shopping_amount)+'"></div>'
+      +'<div class="row4" style="margin-top:7px;">'
+      +'<div class="mfield"><label>Protein g</label><input class="f-p" type="number" step="any" value="'+(+i.protein||0)+'"></div>'
+      +'<div class="mfield"><label>Carbs g</label><input class="f-c" type="number" step="any" value="'+(+i.carbs||0)+'"></div>'
+      +'<div class="mfield"><label>Fat g</label><input class="f-f" type="number" step="any" value="'+(+i.fat||0)+'"></div>'
+      +'<div class="mfield"><label>Calories</label><input class="f-cal" type="number" step="any" value="'+(+i.calories||0)+'"></div></div>'
+      +'<div class="ing-actions"><button class="auto-ing">↻ Auto-fill macros</button>'
+      +'<button class="remove-ing">Remove</button></div>'
+      +'<div class="auto-msg"></div>';
+    w.querySelector(".remove-ing").onclick = () => w.remove();
+    w.querySelector(".auto-ing").onclick = () => {
+      const nm = w.querySelector(".f-ing").value.trim();
+      const amt = w.querySelector(".f-ps").value.trim();
+      const msg = w.querySelector(".auto-msg");
+      if (!nm){ msg.textContent = "Type the ingredient name first."; return; }
+      const r = lookupMacros(nm, amt);
+      if (r === null){ msg.textContent = "No match in the food database — enter the macros by hand."; return; }
+      w.querySelector(".f-p").value = r.p; w.querySelector(".f-c").value = r.c;
+      w.querySelector(".f-f").value = r.f; w.querySelector(".f-cal").value = r.cal;
+      msg.textContent = "Filled from the food database — adjust if your package says otherwise.";
+    };
+    $("eIngs").appendChild(w);
+  }
+
+  $("editBtn").onclick = () => {
+    const r = RECIPES.find(x => x.id === currentId);
+    $("eName").value = r.name;
+    $("eType").value = r.meal_type;
+    $("eMethod").value = r.method || "";
+    $("eIngs").innerHTML = "";
+    (INGS[currentId] || []).forEach(addIngRow);
+    $("addFatBtn").textContent = (PROFILE && PROFILE.cooking_fat && PROFILE.cooking_fat !== "None")
+      ? "+ Add "+PROFILE.cooking_fat.toLowerCase()+" (cooking fat)" : "+ Add my cooking fat";
+    showEdit();
+    $("modal").scrollTop = 0;
+  };
+  $("addIngBtn").onclick = () => addIngRow();
+  $("addFatBtn").onclick = () => {
+    if (!PROFILE || PROFILE.cooking_fat === "None"){ alert("Set your cooking fat in Settings first."); return; }
+    addIngRow({ ingredient: PROFILE.cooking_fat, per_serving: PROFILE.cooking_fat_amount });
+    const rows = $("eIngs").querySelectorAll(".edit-ing");
+    rows[rows.length-1].querySelector(".auto-ing").click();
+  };
+  $("cancelBtn").onclick = () => openRecipe(currentId);
+
+  $("saveBtn").onclick = async () => {
+    const btn = $("saveBtn"); btn.disabled = true; btn.textContent = "Saving…";
+    await db.from("recipes").update({ name: $("eName").value.trim(), meal_type: $("eType").value, method: $("eMethod").value }).eq("id", currentId);
+    const rows = [...$("eIngs").querySelectorAll(".edit-ing")].map(w => ({
+      recipe_id: currentId,
+      ingredient: w.querySelector(".f-ing").value.trim(),
+      per_serving: w.querySelector(".f-ps").value.trim(),
+      shopping_amount: w.querySelector(".f-shop").value.trim(),
+      protein: +w.querySelector(".f-p").value || 0,
+      carbs: +w.querySelector(".f-c").value || 0,
+      fat: +w.querySelector(".f-f").value || 0,
+      calories: +w.querySelector(".f-cal").value || 0
+    })).filter(r => r.ingredient);
+    await db.from("recipe_ingredients").delete().eq("recipe_id", currentId);
+    if (rows.length) await db.from("recipe_ingredients").insert(rows);
+    btn.disabled = false; btn.textContent = "Save changes";
+    await loadRecipes();
+    openRecipe(currentId);
+  };
+
+  $("deleteBtn").onclick = async () => {
+    if (!confirm("Delete this recipe permanently?")) return;
+    await db.from("recipes").delete().eq("id", currentId);
+    closeModal();
+    loadRecipes();
+  };
+
+  function closeModal(){ $("modal").classList.add("hidden"); }
+  $("modalClose").onclick = closeModal;
+  $("modal").onclick = (e) => { if (e.target === $("modal")) closeModal(); };
+
+  db.auth.onAuthStateChange((_e, session) => { CURRENT_EMAIL = (session && session.user && session.user.email) || ""; session ? showApp() : showAuth(); });
+  db.auth.getSession().then(({ data }) => { CURRENT_EMAIL = (data.session && data.session.user && data.session.user.email) || ""; data.session ? showApp() : showAuth(); });
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+  }
+</script>
+</body>
+</html>
