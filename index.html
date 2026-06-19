@@ -752,11 +752,17 @@
   $("prefModal").onclick = (e) => { if (e.target === $("prefModal")) $("prefModal").classList.add("hidden"); };
 
   $("signUpBtn").onclick = async () => {
-    const { error } = await db.auth.signUp({ email: $("email").value, password: $("password").value });
-    $("authMsg").textContent = error ? error.message : "Account created — now tap Sign in.";
+    const email = $("email").value.trim(), password = $("password").value;
+    if (!email || !password){ $("authMsg").textContent = "Enter an email and password first."; return; }
+    if (password.length < 6){ $("authMsg").textContent = "Password must be at least 6 characters."; return; }
+    const { data, error } = await db.auth.signUp({ email, password });
+    if (error){ $("authMsg").textContent = error.message; return; }
+    $("authMsg").textContent = data.session ? "Welcome!" : "Account created — tap Sign in.";
   };
   $("signInBtn").onclick = async () => {
-    const { error } = await db.auth.signInWithPassword({ email: $("email").value, password: $("password").value });
+    const email = $("email").value.trim(), password = $("password").value;
+    if (!email || !password){ $("authMsg").textContent = "Enter your email and password."; return; }
+    const { error } = await db.auth.signInWithPassword({ email, password });
     if (error) $("authMsg").textContent = error.message;
   };
   $("signOutBtn").onclick = async () => { await db.auth.signOut(); };
